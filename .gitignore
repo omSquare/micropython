@@ -47,3 +47,6 @@ genrst/
 ######################
 ports/zephyr/*_merged.conf
 
+# IDEs
+######################
+.idea/
