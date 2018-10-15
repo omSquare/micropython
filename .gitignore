@@ -42,3 +42,8 @@ user.props
 # Generated rst files
 ######################
 genrst/
+
+# Zephyr port files
+######################
+ports/zephyr/*_merged.conf
+
