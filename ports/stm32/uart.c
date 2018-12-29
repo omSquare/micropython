@@ -597,7 +597,9 @@ int uart_rx_char(pyb_uart_obj_t *self) {
     } else {
         // no buffering
         #if defined(STM32F0) || defined(STM32F7) || defined(STM32L4) || defined(STM32H7)
-        return self->uartx->RDR & self->char_mask;
+        int data = self->uartx->RDR & self->char_mask;
+        self->uartx->ICR = USART_ICR_ORECF; // clear ORE if it was set
+        return data;
         #else
         return self->uartx->DR & self->char_mask;
         #endif
@@ -722,21 +724,22 @@ void uart_irq_handler(mp_uint_t uart_id) {
                 // only read data if room in buf
                 #if defined(STM32F0) || defined(STM32F7) || defined(STM32L4) || defined(STM32H7)
                 int data = self->uartx->RDR; // clears UART_FLAG_RXNE
+                self->uartx->ICR = USART_ICR_ORECF; // clear ORE if it was set
                 #else
                 int data = self->uartx->DR; // clears UART_FLAG_RXNE
                 #endif
                 data &= self->char_mask;
-                // Handle interrupt coming in on a UART REPL
                 if (self->attached_to_repl && data == mp_interrupt_char) {
+                    // Handle interrupt coming in on a UART REPL
                     pendsv_kbd_intr();
-                    return;
-                }
-                if (self->char_width == CHAR_WIDTH_9BIT) {
-                    ((uint16_t*)self->read_buf)[self->read_buf_head] = data;
                 } else {
-                    self->read_buf[self->read_buf_head] = data;
+                    if (self->char_width == CHAR_WIDTH_9BIT) {
+                        ((uint16_t*)self->read_buf)[self->read_buf_head] = data;
+                    } else {
+                        self->read_buf[self->read_buf_head] = data;
+                    }
+                    self->read_buf_head = next_head;
                 }
-                self->read_buf_head = next_head;
             } else { // No room: leave char in buf, disable interrupt
                 UART_RXNE_IT_DIS(self->uartx);
             }
