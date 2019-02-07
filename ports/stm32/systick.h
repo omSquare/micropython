@@ -26,7 +26,23 @@
 #ifndef MICROPY_INCLUDED_STM32_SYSTICK_H
 #define MICROPY_INCLUDED_STM32_SYSTICK_H
 
-void sys_tick_wait_at_least(uint32_t stc, uint32_t delay_ms);
-bool sys_tick_has_passed(uint32_t stc, uint32_t delay_ms);
+#define SYSTICK_DISPATCH_NUM_SLOTS (2)
+#define SYSTICK_DISPATCH_DMA (0)
+#define SYSTICK_DISPATCH_STORAGE (1)
+
+typedef void (*systick_dispatch_t)(uint32_t);
+
+extern systick_dispatch_t systick_dispatch_table[SYSTICK_DISPATCH_NUM_SLOTS];
+
+static inline void systick_enable_dispatch(size_t slot, systick_dispatch_t f) {
+    systick_dispatch_table[slot] = f;
+}
+
+static inline void systick_disable_dispatch(size_t slot) {
+    systick_dispatch_table[slot] = NULL;
+}
+
+void systick_wait_at_least(uint32_t stc, uint32_t delay_ms);
+bool systick_has_passed(uint32_t stc, uint32_t delay_ms);
 
 #endif // MICROPY_INCLUDED_STM32_SYSTICK_H
