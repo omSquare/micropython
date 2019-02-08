@@ -26,9 +26,21 @@
 #ifndef MICROPY_INCLUDED_STM32_SYSTICK_H
 #define MICROPY_INCLUDED_STM32_SYSTICK_H
 
-#define SYSTICK_DISPATCH_NUM_SLOTS (2)
-#define SYSTICK_DISPATCH_DMA (0)
-#define SYSTICK_DISPATCH_STORAGE (1)
+// Works for x between 0 and 16 inclusive
+#define POW2_CEIL(x) ((((x) - 1) | ((x) - 1) >> 1 | ((x) - 1) >> 2 | ((x) - 1) >> 3) + 1)
+
+enum {
+    SYSTICK_DISPATCH_DMA = 0,
+    #if MICROPY_HW_ENABLE_STORAGE
+    SYSTICK_DISPATCH_STORAGE,
+    #endif
+    #if MICROPY_PY_NETWORK && MICROPY_PY_LWIP
+    SYSTICK_DISPATCH_LWIP,
+    #endif
+    SYSTICK_DISPATCH_MAX
+};
+
+#define SYSTICK_DISPATCH_NUM_SLOTS POW2_CEIL(SYSTICK_DISPATCH_MAX)
 
 typedef void (*systick_dispatch_t)(uint32_t);
 

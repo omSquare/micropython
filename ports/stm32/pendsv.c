@@ -38,13 +38,13 @@
 // mp_kbd_exception which is in the root-pointer set.
 void *pendsv_object;
 
-#if PENDSV_DISPATCH_NUM_SLOTS > 0
+#if defined(PENDSV_DISPATCH_NUM_SLOTS)
 uint32_t pendsv_dispatch_active;
 pendsv_dispatch_t pendsv_dispatch_table[PENDSV_DISPATCH_NUM_SLOTS];
 #endif
 
 void pendsv_init(void) {
-    #if PENDSV_DISPATCH_NUM_SLOTS > 0
+    #if defined(PENDSV_DISPATCH_NUM_SLOTS)
     pendsv_dispatch_active = false;
     #endif
     // set PendSV interrupt at lowest priority
@@ -69,7 +69,7 @@ void pendsv_kbd_intr(void) {
     }
 }
 
-#if PENDSV_DISPATCH_NUM_SLOTS > 0
+#if defined(PENDSV_DISPATCH_NUM_SLOTS)
 void pendsv_schedule_dispatch(size_t slot, pendsv_dispatch_t f) {
     pendsv_dispatch_table[slot] = f;
     pendsv_dispatch_active = true;
@@ -79,8 +79,9 @@ void pendsv_schedule_dispatch(size_t slot, pendsv_dispatch_t f) {
 void pendsv_dispatch_handler(void) {
     for (size_t i = 0; i < PENDSV_DISPATCH_NUM_SLOTS; ++i) {
         if (pendsv_dispatch_table[i] != NULL) {
+            pendsv_dispatch_t f = pendsv_dispatch_table[i];
             pendsv_dispatch_table[i] = NULL;
-            pendsv_dispatch_table[i]();
+            f();
         }
     }
 }
@@ -119,7 +120,7 @@ __attribute__((naked)) void PendSV_Handler(void) {
     //   sp[0]: ?
 
     __asm volatile (
-        #if PENDSV_DISPATCH_NUM_SLOTS > 0
+        #if defined(PENDSV_DISPATCH_NUM_SLOTS)
         // Check if there are any pending calls to dispatch to
         "ldr r1, pendsv_dispatch_active_ptr\n"
         "ldr r0, [r1]\n"
@@ -174,7 +175,7 @@ __attribute__((naked)) void PendSV_Handler(void) {
 
         // Data
         ".align 2\n"
-        #if PENDSV_DISPATCH_NUM_SLOTS > 0
+        #if defined(PENDSV_DISPATCH_NUM_SLOTS)
         "pendsv_dispatch_active_ptr: .word pendsv_dispatch_active\n"
         #endif
         "pendsv_object_ptr: .word pendsv_object\n"
