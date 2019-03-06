@@ -1535,8 +1535,7 @@ STATIC void compile_try_except(compiler_t *comp, mp_parse_node_t pn_body, int n_
     compile_increase_except_level(comp, l1, MP_EMIT_SETUP_BLOCK_EXCEPT);
 
     compile_node(comp, pn_body); // body
-    EMIT(pop_block);
-    EMIT_ARG(jump, success_label); // jump over exception handler
+    EMIT_ARG(pop_except_jump, success_label, false); // jump over exception handler
 
     EMIT_ARG(label_assign, l1); // start of exception handler
     EMIT(start_except_handler);
@@ -1599,7 +1598,6 @@ STATIC void compile_try_except(compiler_t *comp, mp_parse_node_t pn_body, int n_
         }
         compile_node(comp, pns_except->nodes[1]); // the <body>
         if (qstr_exception_local != 0) {
-            EMIT(pop_block);
             EMIT_ARG(load_const_tok, MP_TOKEN_KW_NONE);
             EMIT_ARG(label_assign, l3);
             EMIT_ARG(load_const_tok, MP_TOKEN_KW_NONE);
@@ -1608,8 +1606,7 @@ STATIC void compile_try_except(compiler_t *comp, mp_parse_node_t pn_body, int n_
             compile_decrease_except_level(comp);
         }
 
-        EMIT(pop_except);
-        EMIT_ARG(jump, l2);
+        EMIT_ARG(pop_except_jump, l2, true);
         EMIT_ARG(label_assign, end_finally_label);
         EMIT_ARG(adjust_stack_size, 1); // stack adjust for the exception instance
     }
@@ -1635,7 +1632,6 @@ STATIC void compile_try_finally(compiler_t *comp, mp_parse_node_t pn_body, int n
     } else {
         compile_try_except(comp, pn_body, n_except, pn_except, pn_else);
     }
-    EMIT(pop_block);
     EMIT_ARG(load_const_tok, MP_TOKEN_KW_NONE);
     EMIT_ARG(label_assign, l_finally_block);
     compile_node(comp, pn_finally);
@@ -1743,8 +1739,7 @@ STATIC void compile_async_for_stmt(compiler_t *comp, mp_parse_node_struct_t *pns
     compile_load_id(comp, context);
     compile_await_object_method(comp, MP_QSTR___anext__);
     c_assign(comp, pns->nodes[0], ASSIGN_STORE); // variable
-    EMIT(pop_block);
-    EMIT_ARG(jump, try_else_label);
+    EMIT_ARG(pop_except_jump, try_else_label, false);
 
     EMIT_ARG(label_assign, try_exception_label);
     EMIT(start_except_handler);
@@ -1753,8 +1748,7 @@ STATIC void compile_async_for_stmt(compiler_t *comp, mp_parse_node_struct_t *pns
     EMIT_ARG(binary_op, MP_BINARY_OP_EXCEPTION_MATCH);
     EMIT_ARG(pop_jump_if, false, try_finally_label);
     EMIT(pop_top); // pop exception instance
-    EMIT(pop_except);
-    EMIT_ARG(jump, while_else_label);
+    EMIT_ARG(pop_except_jump, while_else_label, true);
 
     EMIT_ARG(label_assign, try_finally_label);
     EMIT_ARG(adjust_stack_size, 1); // if we jump here, the exc is on the stack
@@ -1811,8 +1805,7 @@ STATIC void compile_async_with_stmt_helper(compiler_t *comp, int n, mp_parse_nod
         compile_async_with_stmt_helper(comp, n - 1, nodes + 1, body);
         EMIT_ARG(adjust_stack_size, -3);
 
-        // Finish the "try" block
-        EMIT(pop_block);
+        // We have now finished the "try" block and fall through to the "finally"
 
         // At this point, after the with body has executed, we have 3 cases:
         // 1. no exception, we just fall through to this point; stack: (..., ctx_mgr)
