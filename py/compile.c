@@ -2693,9 +2693,6 @@ STATIC mp_obj_t get_const_object(mp_parse_node_struct_t *pns) {
 }
 
 STATIC void compile_const_object(compiler_t *comp, mp_parse_node_struct_t *pns) {
-    #if MICROPY_EMIT_NATIVE
-    comp->scope_cur->scope_flags |= MP_SCOPE_FLAG_HASCONSTS;
-    #endif
     EMIT_ARG(load_const_obj, get_const_object(pns));
 }
 
@@ -2730,9 +2727,6 @@ STATIC void compile_node(compiler_t *comp, mp_parse_node_t pn) {
             } else {
                 EMIT_ARG(load_const_obj, mp_obj_new_int_from_ll(arg));
             }
-            #if MICROPY_EMIT_NATIVE
-            comp->scope_cur->scope_flags |= MP_SCOPE_FLAG_HASCONSTS;
-            #endif
         }
         #else
         EMIT_ARG(load_const_small_int, arg);
@@ -2751,9 +2745,6 @@ STATIC void compile_node(compiler_t *comp, mp_parse_node_t pn) {
                     const byte *data = qstr_data(arg, &len);
                     EMIT_ARG(load_const_obj, mp_obj_new_bytes(data, len));
                 }
-                #if MICROPY_EMIT_NATIVE
-                comp->scope_cur->scope_flags |= MP_SCOPE_FLAG_HASCONSTS;
-                #endif
                 break;
             case MP_PARSE_NODE_TOKEN: default:
                 if (arg == MP_TOKEN_NEWLINE) {
@@ -3275,7 +3266,11 @@ STATIC void compile_scope_inline_asm(compiler_t *comp, scope_t *scope, pass_kind
             void *f = mp_asm_base_get_code((mp_asm_base_t*)comp->emit_inline_asm);
             mp_emit_glue_assign_native(comp->scope_cur->raw_code, MP_CODE_NATIVE_ASM,
                 f, mp_asm_base_get_code_size((mp_asm_base_t*)comp->emit_inline_asm),
-                NULL, comp->scope_cur->num_pos_args, 0, type_sig);
+                NULL,
+                #if MICROPY_PERSISTENT_CODE_SAVE
+                0, 0, 0, 0, NULL,
+                #endif
+                comp->scope_cur->num_pos_args, 0, type_sig);
         }
     }
 
