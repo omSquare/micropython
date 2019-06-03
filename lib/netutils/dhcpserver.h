@@ -3,7 +3,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2013, 2014 Damien P. George
+ * Copyright (c) 2018-2019 Damien P. George
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MICROPY_INCLUDED_STM32_PENDSV_H
-#define MICROPY_INCLUDED_STM32_PENDSV_H
+#ifndef MICROPY_INCLUDED_LIB_NETUTILS_DHCPSERVER_H
+#define MICROPY_INCLUDED_LIB_NETUTILS_DHCPSERVER_H
 
-enum {
-    #if MICROPY_PY_NETWORK && MICROPY_PY_LWIP
-    PENDSV_DISPATCH_LWIP,
-    #if MICROPY_PY_NETWORK_CYW43
-    PENDSV_DISPATCH_CYW43,
-    #endif
-    #endif
-    PENDSV_DISPATCH_MAX
-};
+#include "lwip/ip_addr.h"
 
-#if MICROPY_PY_NETWORK && MICROPY_PY_LWIP
-#define PENDSV_DISPATCH_NUM_SLOTS PENDSV_DISPATCH_MAX
-#endif
+#define DHCPS_BASE_IP (16)
+#define DHCPS_MAX_IP (8)
 
-typedef void (*pendsv_dispatch_t)(void);
+typedef struct _dhcp_server_lease_t {
+    uint8_t mac[6];
+    uint16_t expiry;
+} dhcp_server_lease_t;
 
-void pendsv_init(void);
-void pendsv_kbd_intr(void);
-void pendsv_schedule_dispatch(size_t slot, pendsv_dispatch_t f);
+typedef struct _dhcp_server_t {
+    ip_addr_t ip;
+    ip_addr_t nm;
+    dhcp_server_lease_t lease[DHCPS_MAX_IP];
+    struct udp_pcb *udp;
+} dhcp_server_t;
 
-#endif // MICROPY_INCLUDED_STM32_PENDSV_H
+void dhcp_server_init(dhcp_server_t *d, ip_addr_t *ip, ip_addr_t *nm);
+void dhcp_server_deinit(dhcp_server_t *d);
+
+#endif // MICROPY_INCLUDED_LIB_NETUTILS_DHCPSERVER_H

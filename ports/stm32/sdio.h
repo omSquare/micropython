@@ -3,7 +3,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2013, 2014 Damien P. George
+ * Copyright (c) 2018-2019 Damien P. George
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MICROPY_INCLUDED_STM32_PENDSV_H
-#define MICROPY_INCLUDED_STM32_PENDSV_H
+#ifndef MICROPY_INCLUDED_STM32_SDIO_H
+#define MICROPY_INCLUDED_STM32_SDIO_H
 
-enum {
-    #if MICROPY_PY_NETWORK && MICROPY_PY_LWIP
-    PENDSV_DISPATCH_LWIP,
-    #if MICROPY_PY_NETWORK_CYW43
-    PENDSV_DISPATCH_CYW43,
-    #endif
-    #endif
-    PENDSV_DISPATCH_MAX
-};
+#include <stdbool.h>
+#include <stdint.h>
 
-#if MICROPY_PY_NETWORK && MICROPY_PY_LWIP
-#define PENDSV_DISPATCH_NUM_SLOTS PENDSV_DISPATCH_MAX
-#endif
+void sdio_init(uint32_t irq_pri);
+void sdio_deinit(void);
+void sdio_enable_high_speed_4bit(void);
+int sdio_transfer(uint32_t cmd, uint32_t arg, uint32_t *resp);
+int sdio_transfer_cmd53(bool write, uint32_t block_size, uint32_t arg, size_t len, uint8_t *buf);
 
-typedef void (*pendsv_dispatch_t)(void);
-
-void pendsv_init(void);
-void pendsv_kbd_intr(void);
-void pendsv_schedule_dispatch(size_t slot, pendsv_dispatch_t f);
-
-#endif // MICROPY_INCLUDED_STM32_PENDSV_H
+#endif // MICROPY_INCLUDED_STM32_SDIO_H
