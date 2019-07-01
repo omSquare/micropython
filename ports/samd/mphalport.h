@@ -3,8 +3,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2014-2016 Damien P. George
- * Copyright (c) 2016 Paul Sokolovsky
+ * Copyright (c) 2019 Damien P. George
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,24 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MICROPY_INCLUDED_EXTMOD_MISC_H
-#define MICROPY_INCLUDED_EXTMOD_MISC_H
+#ifndef MICROPY_INCLUDED_SAMD_MPHALPORT_H
+#define MICROPY_INCLUDED_SAMD_MPHALPORT_H
 
-// This file contains cumulative declarations for extmod/ .
+#include <stdint.h>
 
-#include <stddef.h>
-#include "py/runtime.h"
+extern volatile uint32_t systick_ms;
 
-MP_DECLARE_CONST_FUN_OBJ_VAR_BETWEEN(mp_uos_dupterm_obj);
+void mp_hal_set_interrupt_char(int c);
 
-#if MICROPY_PY_OS_DUPTERM
-bool mp_uos_dupterm_is_builtin_stream(mp_const_obj_t stream);
-uintptr_t mp_uos_dupterm_poll(uintptr_t poll_flags);
-int mp_uos_dupterm_rx_chr(void);
-void mp_uos_dupterm_tx_strn(const char *str, size_t len);
-void mp_uos_deactivate(size_t dupterm_idx, const char *msg, mp_obj_t exc);
-#else
-#define mp_uos_dupterm_tx_strn(s, l)
-#endif
+static inline mp_uint_t mp_hal_ticks_ms(void) { return systick_ms; }
+static inline mp_uint_t mp_hal_ticks_us(void) { return systick_ms * 1000; }
+static inline mp_uint_t mp_hal_ticks_cpu(void) { return 0; }
 
-#endif // MICROPY_INCLUDED_EXTMOD_MISC_H
+#endif // MICROPY_INCLUDED_SAMD_MPHALPORT_H

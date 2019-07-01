@@ -3,8 +3,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2014-2016 Damien P. George
- * Copyright (c) 2016 Paul Sokolovsky
+ * Copyright (c) 2019 Damien P. George
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,24 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MICROPY_INCLUDED_EXTMOD_MISC_H
-#define MICROPY_INCLUDED_EXTMOD_MISC_H
+#ifndef MICROPY_INCLUDED_SAMD_TUSB_CONFIG_H
+#define MICROPY_INCLUDED_SAMD_TUSB_CONFIG_H
 
-// This file contains cumulative declarations for extmod/ .
+// Common configuration
 
-#include <stddef.h>
-#include "py/runtime.h"
-
-MP_DECLARE_CONST_FUN_OBJ_VAR_BETWEEN(mp_uos_dupterm_obj);
-
-#if MICROPY_PY_OS_DUPTERM
-bool mp_uos_dupterm_is_builtin_stream(mp_const_obj_t stream);
-uintptr_t mp_uos_dupterm_poll(uintptr_t poll_flags);
-int mp_uos_dupterm_rx_chr(void);
-void mp_uos_dupterm_tx_strn(const char *str, size_t len);
-void mp_uos_deactivate(size_t dupterm_idx, const char *msg, mp_obj_t exc);
-#else
-#define mp_uos_dupterm_tx_strn(s, l)
+#if defined(MCU_SAMD21)
+#define CFG_TUSB_MCU                OPT_MCU_SAMD21
+#elif defined(MCU_SAMD51)
+#define CFG_TUSB_MCU                OPT_MCU_SAMD51
 #endif
+#define CFG_TUSB_RHPORT0_MODE       OPT_MODE_DEVICE
+#define CFG_TUSB_MEM_SECTION
+#define CFG_TUSB_MEM_ALIGN          TU_ATTR_ALIGNED(4)
 
-#endif // MICROPY_INCLUDED_EXTMOD_MISC_H
+// Device configuration
+
+#define CFG_TUD_ENDOINT0_SIZE       (64)
+#define CFG_TUD_CDC                 (1)
+#define CFG_TUD_CDC_RX_BUFSIZE      (64)
+#define CFG_TUD_CDC_TX_BUFSIZE      (64)
+
+#endif // MICROPY_INCLUDED_SAMD_TUSB_CONFIG_H
