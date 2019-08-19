@@ -1259,6 +1259,10 @@ typedef double mp_float_t;
 #define MICROPY_PY_URE (0)
 #endif
 
+#ifndef MICROPY_PY_URE_DEBUG
+#define MICROPY_PY_URE_DEBUG (0)
+#endif
+
 #ifndef MICROPY_PY_URE_MATCH_GROUPS
 #define MICROPY_PY_URE_MATCH_GROUPS (0)
 #endif
@@ -1525,6 +1529,15 @@ typedef double mp_float_t;
 // Condition is likely to be false, to help branch prediction
 #ifndef MP_UNLIKELY
 #define MP_UNLIKELY(x) __builtin_expect((x), 0)
+#endif
+
+// To annotate that code is unreachable
+#ifndef MP_UNREACHABLE
+#if defined(__GNUC__)
+#define MP_UNREACHABLE __builtin_unreachable();
+#else
+#define MP_UNREACHABLE for (;;);
+#endif
 #endif
 
 #ifndef MP_HTOBE16
