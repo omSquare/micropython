@@ -1608,6 +1608,9 @@ STATIC void compile_try_except(compiler_t *comp, mp_parse_node_t pn_body, int n_
 
         qstr qstr_exception_local = 0;
         uint end_finally_label = comp_next_label(comp);
+        #if MICROPY_PY_SYS_SETTRACE
+        EMIT_ARG(set_source_line, pns_except->source_line);
+        #endif
 
         if (MP_PARSE_NODE_IS_NULL(pns_except->nodes[0])) {
             // this is a catch all exception handler
@@ -3078,6 +3081,9 @@ STATIC void compile_scope(compiler_t *comp, scope_t *scope, pass_kind_t pass) {
         mp_parse_node_struct_t *pns = (mp_parse_node_struct_t*)scope->pn;
         assert(MP_PARSE_NODE_STRUCT_NUM_NODES(pns) == 3);
 
+        // Set the source line number for the start of the lambda
+        EMIT_ARG(set_source_line, pns->source_line);
+
         // work out number of parameters, keywords and default parameters, and add them to the id_info array
         // must be done before compiling the body so that arguments are numbered first (for LOAD_FAST etc)
         if (comp->pass == MP_PASS_SCOPE) {
@@ -3154,6 +3160,9 @@ STATIC void compile_scope(compiler_t *comp, scope_t *scope, pass_kind_t pass) {
             scope_find_or_add_id(scope, MP_QSTR___class__, ID_INFO_KIND_LOCAL);
         }
 
+        #if MICROPY_PY_SYS_SETTRACE
+        EMIT_ARG(set_source_line, pns->source_line);
+        #endif
         compile_load_id(comp, MP_QSTR___name__);
         compile_store_id(comp, MP_QSTR___module__);
         EMIT_ARG(load_const_str, MP_PARSE_NODE_LEAF_ARG(pns->nodes[0])); // 0 is class name
