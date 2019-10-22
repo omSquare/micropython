@@ -3,7 +3,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2013-2019 Damien P. George
+ * Copyright (c) 2019, Michael Neuling, IBM Corporation.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MICROPY_INCLUDED_PY_OBJMODULE_H
-#define MICROPY_INCLUDED_PY_OBJMODULE_H
 
-#include "py/obj.h"
+#define mftb()  ({unsigned long rval;                                   \
+        __asm__ volatile("mftb %0" : "=r" (rval)); rval;})
 
-extern const mp_map_t mp_builtin_module_map;
-extern const mp_map_t mp_builtin_module_weak_links_map;
+#define TBFREQ 512000000
 
-mp_obj_t mp_module_get(qstr module_name);
-void mp_module_register(qstr qstr, mp_obj_t module);
+static inline mp_uint_t mp_hal_ticks_ms(void) {
+    unsigned long tb = mftb();
 
-mp_obj_t mp_module_search_umodule(const char *module_str);
-
-#if MICROPY_MODULE_BUILTIN_INIT
-void mp_module_call_init(qstr module_name, mp_obj_t module_obj);
-#else
-static inline void mp_module_call_init(qstr module_name, mp_obj_t module_obj) {
-    (void)module_name;
-    (void)module_obj;
+    return tb * 1000 / TBFREQ;
 }
-#endif
 
-#endif // MICROPY_INCLUDED_PY_OBJMODULE_H
+static inline mp_uint_t mp_hal_ticks_us(void) {
+    unsigned long tb = mftb();
+
+    return tb * 1000000 / TBFREQ;
+}
+
+static inline void mp_hal_set_interrupt_char(char c) {
+}

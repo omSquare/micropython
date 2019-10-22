@@ -3,7 +3,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2013-2019 Damien P. George
+ * Copyright (c) 2019, Michael Neuling, IBM Corporation.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +23,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MICROPY_INCLUDED_PY_OBJMODULE_H
-#define MICROPY_INCLUDED_PY_OBJMODULE_H
 
-#include "py/obj.h"
+#include <unistd.h>
+#include <stdbool.h>
 
-extern const mp_map_t mp_builtin_module_map;
-extern const mp_map_t mp_builtin_module_weak_links_map;
+#include "py/mpconfig.h"
+#include "uart_potato.h"
+#include "uart_lpc_serial.h"
 
-mp_obj_t mp_module_get(qstr module_name);
-void mp_module_register(qstr qstr, mp_obj_t module);
+static int lpc_console;
+static int potato_console;
 
-mp_obj_t mp_module_search_umodule(const char *module_str);
+void uart_init_ppc(int lpc) {
+    lpc_console = lpc;
 
-#if MICROPY_MODULE_BUILTIN_INIT
-void mp_module_call_init(qstr module_name, mp_obj_t module_obj);
-#else
-static inline void mp_module_call_init(qstr module_name, mp_obj_t module_obj) {
-    (void)module_name;
-    (void)module_obj;
+    if (!lpc_console) {
+        potato_console = 1;
+
+        potato_uart_init();
+    } else {
+        lpc_uart_init();
+    }
 }
-#endif
 
-#endif // MICROPY_INCLUDED_PY_OBJMODULE_H
+// Receive single character
+int mp_hal_stdin_rx_chr(void) {
+    unsigned char c = 0;
+    if (lpc_console) {
+        c = lpc_uart_read();
+    } else if (potato_console) {
+        c = potato_uart_read();
+    }
+    return c;
+}
+
+// Send string of given length
+void mp_hal_stdout_tx_strn(const char *str, mp_uint_t len) {
+    if (lpc_console) {
+        int i;
+        for (i = 0; i < len; i++) {
+            lpc_uart_write(str[i]);
+        }
+    } else if (potato_console) {
+        int i;
+        for (i = 0; i < len; i++) {
+            potato_uart_write(str[i]);
+        }
+    }
+}
