@@ -124,7 +124,7 @@ interface (i.e. both signatures and behaviours of the
             self.block_size = block_size
             self.data = bytearray(block_size * num_blocks)
 
-        def readblocks(self, block, buf, offset=0):
+        def readblocks(self, block_num, buf, offset=0):
             addr = block_num * self.block_size + offset
             for i in range(len(buf)):
                 buf[i] = self.data[addr + i]
@@ -155,6 +155,13 @@ As it supports the extended interface, it can be used with :class:`littlefs
     bdev = RAMBlockDev(512, 50)
     os.VfsLfs2.mkfs(bdev)
     os.mount(bdev, '/ramdisk')
+
+Once mounted, the filesystem (regardless of its type) can be used as it
+normally would be used from Python code, for example::
+
+    with open('/ramdisk/hello.txt', 'w') as f:
+        f.write('Hello world')
+    print(open('/ramdisk/hello.txt').read())
 
 Filesystems
 -----------
