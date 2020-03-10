@@ -3,7 +3,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Damien P. George
+ * Copyright (c) 2019 Jim Mussared
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,13 +23,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MICROPY_INCLUDED_DRIVERS_CYW43_CYWBT_H
-#define MICROPY_INCLUDED_DRIVERS_CYW43_CYWBT_H
 
-extern uint8_t bt_hci_cmd_buf[4 + 256];
-extern pyb_uart_obj_t bt_hci_uart_obj;
+#ifndef MICROPY_INCLUDED_EXTMOD_NIMBLE_MODBLUETOOTH_NIMBLE_H
+#define MICROPY_INCLUDED_EXTMOD_NIMBLE_MODBLUETOOTH_NIMBLE_H
 
-int cywbt_init(void);
-int cywbt_activate(void);
+#include "extmod/modbluetooth.h"
 
-#endif // MICROPY_INCLUDED_DRIVERS_CYW43_CYWBT_H
+#define MP_BLUETOOTH_NIMBLE_MAX_SERVICES (8)
+
+typedef struct _mp_bluetooth_nimble_root_pointers_t {
+    // Characteristic (and descriptor) value storage.
+    mp_gatts_db_t gatts_db;
+
+    // Pending service definitions.
+    size_t n_services;
+    struct ble_gatt_svc_def *services[MP_BLUETOOTH_NIMBLE_MAX_SERVICES];
+} mp_bluetooth_nimble_root_pointers_t;
+
+enum {
+    MP_BLUETOOTH_NIMBLE_BLE_STATE_OFF,
+    MP_BLUETOOTH_NIMBLE_BLE_STATE_STARTING,
+    MP_BLUETOOTH_NIMBLE_BLE_STATE_ACTIVE,
+};
+
+extern volatile int mp_bluetooth_nimble_ble_state;
+
+void mp_bluetooth_nimble_port_preinit(void);
+void mp_bluetooth_nimble_port_postinit(void);
+void mp_bluetooth_nimble_port_deinit(void);
+void mp_bluetooth_nimble_port_start(void);
+
+#endif // MICROPY_INCLUDED_EXTMOD_NIMBLE_MODBLUETOOTH_NIMBLE_H
