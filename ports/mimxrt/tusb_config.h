@@ -1,9 +1,7 @@
 /*
- * This file is part of the MicroPython project, http://micropython.org/
- *
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Jim Mussared
+ * Copyright (c) 2020 Jim Mussared
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,36 +20,17 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
+ *
  */
+#ifndef MICROPY_INCLUDED_MIMXRT_TUSB_CONFIG_H
+#define MICROPY_INCLUDED_MIMXRT_TUSB_CONFIG_H
 
-#ifndef MICROPY_INCLUDED_EXTMOD_NIMBLE_MODBLUETOOTH_NIMBLE_H
-#define MICROPY_INCLUDED_EXTMOD_NIMBLE_MODBLUETOOTH_NIMBLE_H
+#define CFG_TUSB_RHPORT0_MODE   (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
 
-#include "extmod/modbluetooth.h"
+#define CFG_TUSB_OS             (OPT_OS_NONE)
 
-#define MP_BLUETOOTH_NIMBLE_MAX_SERVICES (8)
+#define CFG_TUD_CDC             (1)
+#define CFG_TUD_CDC_RX_BUFSIZE  (256)
+#define CFG_TUD_CDC_TX_BUFSIZE  (256)
 
-typedef struct _mp_bluetooth_nimble_root_pointers_t {
-    // Characteristic (and descriptor) value storage.
-    mp_gatts_db_t gatts_db;
-
-    // Pending service definitions.
-    size_t n_services;
-    struct ble_gatt_svc_def *services[MP_BLUETOOTH_NIMBLE_MAX_SERVICES];
-} mp_bluetooth_nimble_root_pointers_t;
-
-enum {
-    MP_BLUETOOTH_NIMBLE_BLE_STATE_OFF,
-    MP_BLUETOOTH_NIMBLE_BLE_STATE_STARTING,
-    MP_BLUETOOTH_NIMBLE_BLE_STATE_ACTIVE,
-    MP_BLUETOOTH_NIMBLE_BLE_STATE_STOPPING,
-};
-
-extern volatile int mp_bluetooth_nimble_ble_state;
-
-void mp_bluetooth_nimble_port_preinit(void);
-void mp_bluetooth_nimble_port_postinit(void);
-void mp_bluetooth_nimble_port_deinit(void);
-void mp_bluetooth_nimble_port_start(void);
-
-#endif // MICROPY_INCLUDED_EXTMOD_NIMBLE_MODBLUETOOTH_NIMBLE_H
+#endif // MICROPY_INCLUDED_MIMXRT_TUSB_CONFIG_H

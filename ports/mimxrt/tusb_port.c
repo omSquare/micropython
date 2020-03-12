@@ -24,7 +24,6 @@
  * THE SOFTWARE.
  */
 
-#include "samd_soc.h"
 #include "tusb.h"
 
 #define USBD_VID (0xf055)
@@ -56,7 +55,7 @@ static const tusb_desc_device_t usbd_desc_device = {
     .bDeviceClass = TUSB_CLASS_MISC,
     .bDeviceSubClass = MISC_SUBCLASS_COMMON,
     .bDeviceProtocol = MISC_PROTOCOL_IAD,
-    .bMaxPacketSize0 = CFG_TUD_ENDOINT0_SIZE,
+    .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
     .idVendor = USBD_VID,
     .idProduct = USBD_PID,
     .bcdDevice = 0x0100,
@@ -113,34 +112,3 @@ const uint16_t *tud_descriptor_string_cb(uint8_t index) {
 
     return desc_str;
 }
-
-#if defined(MCU_SAMD21)
-
-void USB_Handler_wrapper(void) {
-    USB_Handler();
-    tud_task();
-}
-
-#elif defined(MCU_SAMD51)
-
-void USB_0_Handler_wrapper(void) {
-    USB_0_Handler();
-    tud_task();
-}
-
-void USB_1_Handler_wrapper(void) {
-    USB_1_Handler();
-    tud_task();
-}
-
-void USB_2_Handler_wrapper(void) {
-    USB_2_Handler();
-    tud_task();
-}
-
-void USB_3_Handler_wrapper(void) {
-    USB_3_Handler();
-    tud_task();
-}
-
-#endif

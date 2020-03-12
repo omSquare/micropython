@@ -3,7 +3,8 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Jim Mussared
+ * Copyright (c) 2019 Damien P. George
+ * Copyright (c) 2020 Jim Mussared
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,35 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#ifndef MICROPY_INCLUDED_MIMXRT_MPHALPORT_H
+#define MICROPY_INCLUDED_MIMXRT_MPHALPORT_H
 
-#ifndef MICROPY_INCLUDED_EXTMOD_NIMBLE_MODBLUETOOTH_NIMBLE_H
-#define MICROPY_INCLUDED_EXTMOD_NIMBLE_MODBLUETOOTH_NIMBLE_H
+#include <stdint.h>
 
-#include "extmod/modbluetooth.h"
+extern volatile uint32_t systick_ms;
 
-#define MP_BLUETOOTH_NIMBLE_MAX_SERVICES (8)
+void mp_hal_set_interrupt_char(int c);
 
-typedef struct _mp_bluetooth_nimble_root_pointers_t {
-    // Characteristic (and descriptor) value storage.
-    mp_gatts_db_t gatts_db;
+static inline mp_uint_t mp_hal_ticks_ms(void) {
+    return systick_ms;
+}
 
-    // Pending service definitions.
-    size_t n_services;
-    struct ble_gatt_svc_def *services[MP_BLUETOOTH_NIMBLE_MAX_SERVICES];
-} mp_bluetooth_nimble_root_pointers_t;
+static inline mp_uint_t mp_hal_ticks_us(void) {
+    return systick_ms * 1000;
+}
 
-enum {
-    MP_BLUETOOTH_NIMBLE_BLE_STATE_OFF,
-    MP_BLUETOOTH_NIMBLE_BLE_STATE_STARTING,
-    MP_BLUETOOTH_NIMBLE_BLE_STATE_ACTIVE,
-    MP_BLUETOOTH_NIMBLE_BLE_STATE_STOPPING,
-};
+static inline mp_uint_t mp_hal_ticks_cpu(void) {
+    return 0;
+}
 
-extern volatile int mp_bluetooth_nimble_ble_state;
-
-void mp_bluetooth_nimble_port_preinit(void);
-void mp_bluetooth_nimble_port_postinit(void);
-void mp_bluetooth_nimble_port_deinit(void);
-void mp_bluetooth_nimble_port_start(void);
-
-#endif // MICROPY_INCLUDED_EXTMOD_NIMBLE_MODBLUETOOTH_NIMBLE_H
+#endif // MICROPY_INCLUDED_MIMXRT_MPHALPORT_H
