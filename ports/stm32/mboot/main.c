@@ -38,14 +38,12 @@
 #include "powerctrl.h"
 #include "dfu.h"
 
-// Using polling is about 10% faster than not using it (and using IRQ instead)
-// This DFU code with polling runs in about 70% of the time of the ST bootloader
+// This option selects whether to use explicit polling or IRQs for USB events.
+// In some test cases polling mode can run slightly faster, but it uses more power.
+// Polling mode will also cause failures with the mass-erase command because USB
+// events will not be serviced for the duration of the mass erase.
 // With STM32WB MCUs only non-polling/IRQ mode is supported.
-#if defined(STM32WB)
 #define USE_USB_POLLING (0)
-#else
-#define USE_USB_POLLING (1)
-#endif
 
 // Using cache probably won't make it faster because we run at a low frequency, and best
 // to keep the MCU config as minimal as possible.
@@ -800,28 +798,6 @@ static void dfu_init(void) {
     dfu_context.addr = 0x08000000;
 }
 
-// The DFU_GETSTATUS response before dfu_process_dnload is run should include the needed timeout adjustments
-static size_t get_timeout_ms(void) {
-    if (dfu_context.wBlockNum == 0) {
-        // download control commands
-        if (dfu_context.wLength >= 1 && dfu_context.buf[0] == DFU_CMD_DNLOAD_ERASE) {
-            if (dfu_context.wLength == 1) {
-                // mass erase command
-                // It takes 10-12 seconds to erase a 2MB stm part. Extrapolate a suitable timeout from this.
-                return APPLICATION_FLASH_LENGTH / 170;
-
-            } else if (dfu_context.wLength == 5) {
-                // erase page command
-                return 500;
-            }
-        }
-    } else if (dfu_context.wBlockNum > 1) {
-        // write data to memory command
-        return 500;
-    }
-    return 0;
-}
-
 static int dfu_process_dnload(void) {
     int ret = -1;
     if (dfu_context.wBlockNum == 0) {
@@ -922,11 +898,10 @@ static int dfu_handle_tx(int cmd, int arg, int len, uint8_t *buf, int max_len) {
             default:
                 dfu_context.state = DFU_STATE_BUSY;
         }
-        size_t timeout_ms = get_timeout_ms();
         buf[0] = dfu_context.status;          // bStatus
-        buf[1] = (timeout_ms >> 16) & 0xFF;   // bwPollTimeout (ms)
-        buf[2] = (timeout_ms >> 8) & 0xFF;    // bwPollTimeout (ms)
-        buf[3] = timeout_ms & 0xFF;           // bwPollTimeout (ms)
+        buf[1] = 0;                           // bwPollTimeout_lsb (ms)
+        buf[2] = 0;                           // bwPollTimeout     (ms)
+        buf[3] = 0;                           // bwPollTimeout_msb (ms)
         buf[4] = dfu_context.state;           // bState
         buf[5] = dfu_context.error;           // iString
         // Clear errors now they've been sent
