@@ -37,8 +37,7 @@
 #include "py/mphal.h"
 #include "py/mperrno.h"
 #include "extmod/machine_i2c.h"
-
-STATIC const mp_obj_type_t machine_hard_i2c_type;
+#include "modmachine.h"
 
 typedef struct _machine_hard_i2c_obj_t {
     mp_obj_base_t base;
@@ -52,6 +51,8 @@ STATIC void machine_hard_i2c_print(const mp_print_t *print, mp_obj_t self_in, mp
 }
 
 mp_obj_t machine_hard_i2c_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
+    MP_MACHINE_I2C_CHECK_FOR_LEGACY_SOFTI2C_CONSTRUCTION(n_args, n_kw, all_args);
+
     enum { ARG_id, ARG_scl, ARG_sda, ARG_freq, ARG_timeout };
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_id, MP_ARG_REQUIRED | MP_ARG_OBJ },
@@ -127,7 +128,7 @@ STATIC const mp_machine_i2c_p_t machine_hard_i2c_p = {
     .transfer_single = machine_hard_i2c_transfer_single,
 };
 
-STATIC const mp_obj_type_t machine_hard_i2c_type = {
+const mp_obj_type_t machine_hard_i2c_type = {
     { &mp_type_type },
     .name = MP_QSTR_I2C,
     .print = machine_hard_i2c_print,
