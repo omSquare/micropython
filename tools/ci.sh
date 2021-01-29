@@ -33,6 +33,7 @@ function ci_code_formatting_run {
 # code size
 
 function ci_code_size_setup {
+    sudo apt-get update
     sudo apt-get install gcc-multilib
     gcc --version
     ci_gcc_arm_setup
@@ -173,6 +174,20 @@ function ci_qemu_arm_build {
     make ${MAKEOPTS} -C ports/qemu-arm CFLAGS_EXTRA=-DMP_ENDIANNESS_BIG=1
     make ${MAKEOPTS} -C ports/qemu-arm clean
     make ${MAKEOPTS} -C ports/qemu-arm -f Makefile.test test
+}
+
+########################################################################################
+# ports/rp2
+
+function ci_rp2_setup {
+    ci_gcc_arm_setup
+}
+
+function ci_rp2_build {
+    make ${MAKEOPTS} -C mpy-cross
+    git submodule update --init lib/pico-sdk
+    git -C lib/pico-sdk submodule update --init lib/tinyusb
+    make ${MAKEOPTS} -C ports/rp2
 }
 
 ########################################################################################
