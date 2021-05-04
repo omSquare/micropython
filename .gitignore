@@ -43,10 +43,6 @@ user.props
 ######################
 genrst/
 
-# Zephyr port files
+# MacOS desktop metadata files
 ######################
-ports/zephyr/*_merged.conf
-
-# IDEs
-######################
-.idea/
+.DS_Store
